@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Printed LED Sign | Project Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --deep-navy: #07182e;
+  --ocean-dark: #0b2038;
+  --ocean-mid: #0f2d4f;
+  --ocean-blue: #16426a;
+  --sea-surface: #1a5078;
+  --turquoise: #0dd4c8;
+  --cyan-glow: #00ddff;
+  --cyan-dim: rgba(0, 221, 255, 0.35);
+  --gold: #f0b830;
+  --gold-light: #ffd866;
+  --gold-dark: #c89020;
+  --gold-glow: rgba(240, 184, 48, 0.35);
+  --sunset: #ff7a3d;
+  --sandy: #f0dbb8;
+  --parchment: #f5f0e8;
+  --text-primary: #f5f0e8;
+  --text-secondary: #bdd4de;
+  --text-dim: rgba(189, 212, 222, 0.5);
+  --card-bg: rgba(10, 28, 50, 0.5);
+  --card-border: rgba(240, 184, 48, 0.15);
+  --card-border-hover: rgba(240, 184, 48, 0.5);
+  --glow-gold: rgba(240, 184, 48, 0.22);
+  --glow-cyan: rgba(0, 221, 255, 0.2);
+  --font-heading: 'Cinzel', 'Georgia', serif;
+  --font-body: 'Cormorant Garamond', 'Georgia', serif;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 70px;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--ocean-mid);
+  color: var(--text-primary);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+a:hover {
+  color: var(--gold-light);
+}
+
+img {
+  width: 100%;
+  max-width: 800px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+ul {
+  list-style: none;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--deep-navy);
+}
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--cyan-glow));
+  z-index: 9999;
+  transition: width 0.1s;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ocean-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--gold-dark), var(--gold));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-light);
+}
+
+.sound-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9998;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border-hover);
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  color: var(--gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 0 16px var(--glow-gold);
+}
+.sound-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 24px var(--gold-glow);
+  border-color: var(--gold);
+}
+.sound-icon {
+  width: 22px;
+  height: 22px;
+}
+.sound-toggle.muted .wave-line {
+  opacity: 0.3;
+}
+.wave-line {
+  transition: opacity 0.3s;
+}
+
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--cyan-glow);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(10, 26, 48, 0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--card-border);
+  transition: box-shadow 0.3s;
+}
+.navbar.scrolled {
+  box-shadow: 0 0 30px var(--glow-gold), 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 64px;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px var(--gold-glow);
+}
+
+.nav-links {
+  display: flex;
+  gap: 6px;
+}
+.nav-links a {
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  transition: all 0.3s;
+  position: relative;
+  letter-spacing: 0.5px;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background: var(--gold);
+  transition: width 0.3s;
+}
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 60%;
+}
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--gold-light);
+}
+.nav-links a.active {
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 26px;
+  height: 2px;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 100px 24px 60px;
+  background: linear-gradient(180deg, #091a30 0%, #0f2d4f 35%, #123a5c 70%, #0e2840 100%);
+}
+
+#oceanCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+.hero-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(240, 184, 48, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 184, 48, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-content {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.glow-text {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--parchment);
+  text-shadow:
+    0 0 15px var(--gold-glow),
+    0 0 40px var(--gold-glow),
+    0 0 80px var(--glow-gold),
+    0 0 140px rgba(240, 184, 48, 0.15);
+  animation: goldFlicker 4s infinite alternate;
+  position: relative;
+}
+.glow-text::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: var(--gold);
+  filter: blur(25px);
+  opacity: 0.45;
+  z-index: -1;
+}
+.glow-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: var(--cyan-glow);
+  filter: blur(50px);
+  opacity: 0.2;
+  z-index: -2;
+}
+
+@keyframes goldFlicker {
+  0%   { text-shadow: 0 0 15px var(--gold-glow), 0 0 40px var(--gold-glow), 0 0 80px var(--glow-gold); }
+  25%  { text-shadow: 0 0 20px var(--gold-glow), 0 0 55px var(--gold-glow), 0 0 100px var(--glow-gold), 0 0 140px rgba(0, 221, 255, 0.12); }
+  50%  { text-shadow: 0 0 12px var(--gold-glow), 0 0 35px var(--gold-glow), 0 0 65px var(--glow-gold); }
+  75%  { text-shadow: 0 0 22px var(--gold-glow), 0 0 60px var(--gold-glow), 0 0 110px var(--glow-gold), 0 0 160px rgba(0, 221, 255, 0.1); }
+  100% { text-shadow: 0 0 18px var(--gold-glow), 0 0 45px var(--gold-glow), 0 0 85px var(--glow-gold); }
+}
+
+.hero-sub {
+  margin-top: 20px;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.btn-glow {
+  display: inline-block;
+  margin-top: 36px;
+  padding: 14px 44px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--deep-navy);
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  box-shadow: 0 0 20px var(--gold-glow), 0 0 40px var(--glow-gold);
+  transition: all 0.4s;
+  border: none;
+  cursor: pointer;
+}
+.btn-glow:hover {
+  box-shadow: 0 0 30px var(--gold-glow), 0 0 60px var(--glow-gold), 0 0 80px rgba(240, 184, 48, 0.25);
+  transform: translateY(-3px) scale(1.02);
+  color: var(--deep-navy);
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  z-index: 2;
+  font-family: var(--font-heading);
+}
+.scroll-arrow {
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  transform: rotate(45deg);
+  animation: bounceDown 2s infinite;
+}
+@keyframes bounceDown {
+  0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.4; }
+  50%      { transform: rotate(45deg) translateY(8px); opacity: 1; }
+}
+
+.wave-divider {
+  line-height: 0;
+  font-size: 0;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+.wave-divider svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+.wave-divider svg path {
+  fill: var(--ocean-mid);
+}
+.wave-divider.flip svg {
+  transform: rotate(180deg);
+}
+.wave-divider.flip svg path {
+  fill: var(--ocean-dark);
+}
+
+.section {
+  padding: 100px 24px;
+  position: relative;
+  z-index: 2;
+}
+.section-dark {
+  background: var(--ocean-dark);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px var(--gold-glow);
+}
+.section-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 12px auto 0;
+}
+
+.section-desc {
+  text-align: center;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 56px;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+}
+
+.concept-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 36px 28px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  transform: translateY(0);
+}
+.concept-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, var(--gold-glow), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}
+.concept-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.concept-card:hover::before {
+  opacity: 0.1;
+}
+.concept-card:hover::after {
+  opacity: 1;
+}
+.concept-card:hover {
+  border-color: var(--card-border-hover);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(240, 184, 48, 0.12), 0 0 30px var(--glow-gold);
+}
+
+.concept-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+  display: inline-block;
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+
+.concept-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+}
+
+.concept-card p {
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.timeline {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto;
+  padding-left: 40px;
+}
+
+.timeline-line {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--gold-dark), var(--gold), var(--cyan-glow));
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.tl-marker {
+  position: absolute;
+  left: -32px;
+  top: 20px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 16px var(--gold-glow);
+  border: 2px solid var(--ocean-dark);
+  z-index: 1;
+}
+
+.tl-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.4s;
+  backdrop-filter: blur(6px);
+}
+.tl-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 0 24px var(--glow-gold), 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+}
+
+.tl-step {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--cyan-glow);
+  margin-bottom: 8px;
+  text-shadow: 0 0 8px var(--cyan-dim);
+}
+
+.tl-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: var(--gold-light);
+  letter-spacing: 0.5px;
+}
+
+.tl-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+}
+
+figure {
+  margin: 0;
+}
+
+.tl-figure {
+  margin-top: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  transition: all 0.4s;
+  background: rgba(10, 26, 48, 0.35);
+  position: relative;
+}
+.tl-figure::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--gold-dark), var(--cyan-glow), var(--gold-dark));
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: -1;
+}
+.tl-figure:hover::before {
+  opacity: 0.55;
+}
+.tl-figure:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 0 24px var(--glow-gold), 0 0 40px var(--cyan-dim);
+  transform: scale(1.01);
+}
+
+.img-caption {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  padding: 10px 16px;
+  letter-spacing: 0.5px;
+  border-top: 1px solid var(--card-border);
+  font-style: italic;
+}
+
+.tl-img,
+.stl-img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+  transition: all 0.5s;
+}
+.tl-figure:hover .tl-img {
+  transform: scale(1.06);
+}
+
+.stl-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+  margin-bottom: 48px;
+}
+
+.stl-image-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+  transition: all 0.4s;
+  position: relative;
+}
+.stl-image-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--gold-dark), var(--cyan-glow), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: -1;
+}
+.stl-image-card:hover::before {
+  opacity: 0.45;
+}
+.stl-image-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 0 28px var(--glow-gold), 0 0 40px var(--cyan-dim);
+  transform: translateY(-4px);
+}
+
+.stl-figure {
+  margin: 0;
+  background: rgba(10, 26, 48, 0.35);
+}
+
+.stl-figure .stl-img {
+  height: 260px;
+  transition: transform 0.5s;
+}
+.stl-image-card:hover .stl-img {
+  transform: scale(1.06);
+}
+
+.stl-figure .img-caption {
+  border-top: 1px solid var(--card-border);
+}
+
+@media (max-width: 480px) {
+  .stl-image-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dims {
+  margin-top: 48px;
+  text-align: center;
+}
+.dims h3 {
+  font-family: var(--font-heading);
+  margin-bottom: 20px;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.dims-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+.dim-chip {
+  background: linear-gradient(135deg, rgba(240, 184, 48, 0.1), rgba(0, 221, 255, 0.1));
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 12px 28px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--cyan-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s;
+  font-family: var(--font-heading);
+}
+.dim-chip:hover {
+  border-color: var(--cyan-glow);
+  box-shadow: 0 0 20px var(--cyan-dim);
+  transform: scale(1.05);
+}
+.dim-chip span {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: var(--font-body);
+}
+
+.stl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.stl-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(6px);
+  transform: translateY(0);
+}
+.stl-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 0 28px var(--glow-gold);
+  transform: translateY(-4px);
+}
+
+.stl-icon {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+  display: inline-block;
+  filter: drop-shadow(0 0 6px var(--gold-glow));
+}
+
+.stl-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+}
+
+.stl-card p {
+  color: var(--text-secondary);
+  font-size: 0.93rem;
+  margin-bottom: 16px;
+}
+
+.wiring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.wiring-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(6px);
+  position: relative;
+  overflow: hidden;
+}
+.wiring-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan-glow), transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.wiring-card:hover::after {
+  opacity: 1;
+}
+.wiring-card:hover {
+  border-color: rgba(0, 221, 255, 0.35);
+  box-shadow: 0 0 28px var(--cyan-dim);
+  transform: translateY(-4px);
+}
+
+.wiring-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  color: var(--cyan-glow);
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px var(--cyan-dim);
+}
+
+.wiring-card p {
+  color: var(--text-secondary);
+  font-size: 0.93rem;
+  margin-bottom: 16px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+}
+
+.gallery-placeholder {
+  background: var(--card-bg);
+  border: 2px dashed var(--card-border);
+  border-radius: 12px;
+  padding: 60px 24px;
+  text-align: center;
+  transition: all 0.4s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 260px;
+  backdrop-filter: blur(6px);
+}
+.gallery-placeholder:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 0 24px var(--glow-gold);
+  transform: translateY(-4px);
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+
+.gallery-placeholder h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+}
+
+.gallery-placeholder p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.reflection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.reflection-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  transition: all 0.4s;
+  backdrop-filter: blur(6px);
+}
+.reflection-card:hover {
+  transform: translateY(-4px);
+}
+
+.card-good:hover {
+  border-color: rgba(74, 222, 128, 0.35);
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.15);
+}
+.card-challenge:hover {
+  border-color: rgba(251, 191, 36, 0.35);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.15);
+}
+.card-improve:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 0 24px var(--glow-gold);
+}
+
+.ref-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ref-icon {
+  font-size: 1.4rem;
+}
+.ref-heading h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+}
+
+.reflection-card ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reflection-card li {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding-left: 20px;
+  position: relative;
+}
+.reflection-card li::before {
+  content: '\2735';
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+  font-size: 0.65rem;
+  top: 3px;
+}
+
+.footer {
+  text-align: center;
+  padding: 40px 24px 80px;
+  border-top: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.compass-rose {
+  width: 48px;
+  height: 48px;
+  color: var(--gold);
+  opacity: 0.7;
+  animation: compassSpin 20s linear infinite;
+}
+.compass-svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes compassSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.concept-card:nth-child(1).visible,
+.stl-card:nth-child(1).visible,
+.wiring-card:nth-child(1).visible,
+.reflection-card:nth-child(1).visible {
+  transition-delay: 0.05s;
+}
+.concept-card:nth-child(2).visible,
+.stl-card:nth-child(2).visible,
+.wiring-card:nth-child(2).visible,
+.reflection-card:nth-child(2).visible {
+  transition-delay: 0.15s;
+}
+.concept-card:nth-child(3).visible,
+.stl-card:nth-child(3).visible,
+.wiring-card:nth-child(3).visible,
+.reflection-card:nth-child(3).visible {
+  transition-delay: 0.25s;
+}
+.stl-card:nth-child(4).visible,
+.wiring-card:nth-child(4).visible {
+  transition-delay: 0.35s;
+}
+.stl-card:nth-child(5).visible {
+  transition-delay: 0.45s;
+}
+.stl-card:nth-child(6).visible {
+  transition-delay: 0.55s;
+}
+
+.concept-card.visible,
+.stl-card.visible,
+.wiring-card.visible,
+.reflection-card.visible,
+.gallery-placeholder.visible {
+  animation: cardFloat 6s ease-in-out infinite;
+}
+.concept-card.visible:nth-child(2),
+.stl-card.visible:nth-child(2),
+.wiring-card.visible:nth-child(2),
+.reflection-card.visible:nth-child(2) {
+  animation-delay: -2s;
+}
+.concept-card.visible:nth-child(3),
+.stl-card.visible:nth-child(3),
+.wiring-card.visible:nth-child(3),
+.reflection-card.visible:nth-child(3) {
+  animation-delay: -4s;
+}
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-6px); }
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgba(10, 26, 48, 0.96);
+    backdrop-filter: blur(16px);
+    flex-direction: column;
+    padding: 16px 24px;
+    gap: 4px;
+    transform: translateY(-120%);
+    opacity: 0;
+    transition: all 0.4s;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-links.open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .hamburger {
+    display: flex;
+  }
+  .hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
+  .timeline {
+    padding-left: 32px;
+  }
+  .tl-marker {
+    left: -24px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wave-divider svg {
+    height: 40px;
+  }
+
+  .sound-toggle {
+    bottom: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 60px 16px;
+  }
+  .hero {
+    padding: 80px 16px 40px;
+  }
+  .dim-chip {
+    font-size: 1.1rem;
+    padding: 10px 20px;
+  }
+  .wave-divider svg {
+    height: 30px;
+  }
+}
+  </style>
+</head>
+<body>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- SOUND TOGGLE -->
+  <button class="sound-toggle" id="soundToggle" aria-label="Toggle ambient sound">
+    <svg class="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 10v4a1 1 0 001 1h3l4 5V4L7 9H4a1 1 0 00-1 1z"/>
+      <path class="wave-line" d="M16 8a6 6 0 010 8"/>
+      <path class="wave-line" d="M19 5a10 10 0 010 14"/>
+    </svg>
+  </button>
+
+  <!-- FLOATING PARTICLES -->
+  <div class="particles" id="particles"></div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <span class="logo">&lt;LED_SIGN /&gt;</span>
+      <ul class="nav-links">
+        <li><a href="#hero" class="active">Home</a></li>
+        <li><a href="#concept">Concept</a></li>
+        <li><a href="#design">Design</a></li>
+        <li><a href="#stl">STL</a></li>
+        <li><a href="#improvements">Improvements</a></li>
+        <li><a href="#reflection">Reflection</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero" class="hero">
+    <canvas id="oceanCanvas"></canvas>
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <h1 class="glow-text" data-text="3D Printed LED Sign">3D Printed LED Sign</h1>
+      <p class="hero-sub">A custom illuminated sign made with Fusion 360, 3D printing, and RGB LEDs</p>
+      <a href="#concept" class="btn-glow">Explore the Project</a>
+    </div>
+    <div class="scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- WAVE DIVIDER -->
+  <div class="wave-divider">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#0f1628"/>
+    </svg>
+  </div>
+
+  <!-- CONCEPT & INSPIRATION -->
+  <section id="concept" class="section">
+    <div class="container">
+      <h2 class="section-title reveal">Concept &amp; Inspiration</h2>
+      <div class="concept-grid">
+        <div class="concept-card reveal">
+          <div class="concept-icon">&#128249;</div>
+            <h3>The Idea</h3>
+          <p>
+            It all started while watching a YouTube tutorial about making custom 3D printed LED signs.
+            The idea of mixing digital design, 3D printing, and lighting into my own
+            project grabbed my attention right away.
+          </p>
+        </div>
+        <div class="concept-card reveal">
+          <div class="concept-icon">&#127912;</div>
+          <h3>The Vision</h3>
+          <p>
+            I wanted to create my own custom lit up sign that combines text,
+            engineering, and lighting. I used <strong>Fusion 360</strong> for the 3D design, a
+            <strong>3D printer</strong> to make the parts, and <strong>LED strips</strong> for the glow.
+          </p>
+        </div>
+        <div class="concept-card reveal">
+          <div class="concept-icon">&#9889;</div>
+          <h3>The Goal</h3>
+          <p>
+            A fully working LED sign that can hang on a wall. It has clear letters with even lighting
+            and a clean modern look. Something nice enough to hang in a
+            room or workspace.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAVE DIVIDER -->
+  <div class="wave-divider flip">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#0a0e1a"/>
+    </svg>
+  </div>
+
+  <!-- DESIGN PROCESS -->
+  <section id="design" class="section section-dark">
+    <div class="container">
+      <h2 class="section-title reveal">Design Process in Fusion 360</h2>
+      <p class="section-desc reveal">Every good sign starts with a digital design. Here is how the model came together.</p>
+
+      <div class="timeline">
+        <div class="timeline-line"></div>
+
+        <div class="timeline-item reveal">
+          <div class="tl-marker"></div>
+          <div class="tl-card">
+            <div class="tl-step">Step 1</div>
+            <h3>Choosing the Font</h3>
+            <p>I picked a bold, modern font that would look great when lit up and have enough surface area for the light to shine through.</p>
+            <figure class="tl-figure">
+              <img src="images/choosing-the-font.png" alt="Choosing the Font" class="tl-img" data-caption="Choosing the Font">
+              <figcaption class="img-caption">Choosing the Font</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="tl-marker"></div>
+          <div class="tl-card">
+            <div class="tl-step">Step 2</div>
+            <h3>Image to SVG</h3>
+            <p>I converted the text into an SVG file so I could open it in Fusion 360 as a clean sketch.</p>
+            <figure class="tl-figure">
+              <img src="images/image-to-svg.png" alt="Image to SVG Conversion" class="tl-img" data-caption="Image to SVG">
+              <figcaption class="img-caption">Image to SVG</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="tl-marker"></div>
+          <div class="tl-card">
+            <div class="tl-step">Step 3</div>
+            <h3>Creating Sketches</h3>
+            <p>I imported the SVG into Fusion 360 and created sketches for each letter.</p>
+            <figure class="tl-figure">
+              <img src="images/creating-sketches.png" alt="Creating Sketches in Fusion 360" class="tl-img" data-caption="Creating Sketches">
+              <figcaption class="img-caption">Creating Sketches</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="tl-marker"></div>
+          <div class="tl-card">
+            <div class="tl-step">Step 4</div>
+            <h3>Offset &amp; Extrude</h3>
+            <p>I made outlines for the LED channels, then made the base <strong>30mm</strong> deep with <strong>1mm</strong> thick walls.</p>
+            <figure class="tl-figure">
+              <img src="images/offset-extrude.png" alt="Offset and Extrude" class="tl-img" data-caption="Offset & Extrude">
+              <figcaption class="img-caption">Offset & Extrude</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="tl-marker"></div>
+          <div class="tl-card">
+            <div class="tl-step">Step 5</div>
+            <h3>Diffuser Caps &amp; Final Design</h3>
+            <p>I designed snap-on diffuser caps for each letter to spread the LED light evenly across the front.</p>
+            <figure class="tl-figure">
+              <img src="images/diffuser-caps-final.png" alt="Diffuser Caps and Final Design" class="tl-img" data-caption="Diffuser Caps & Final Design">
+              <figcaption class="img-caption">Diffuser Caps & Final Design</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="tl-marker"></div>
+          <div class="tl-card">
+            <div class="tl-step">Step 6</div>
+            <h3>Export STL</h3>
+            <p>I exported each part as a separate STL file. One file per letter, ready for the slicer.</p>
+            <figure class="tl-figure">
+              <img src="images/stl-export-window.png" alt="Exporting the final model as STL files for 3D printing" class="tl-img" data-caption="Exporting the final model as STL files for 3D printing.">
+              <figcaption class="img-caption">Exporting the final model as STL files for 3D printing.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+
+      <div class="dims reveal">
+        <h3>Key Dimensions</h3>
+        <div class="dims-grid">
+          <div class="dim-chip">300 mm <span>Width</span></div>
+          <div class="dim-chip">120 mm <span>Height</span></div>
+          <div class="dim-chip">30 mm <span>Depth</span></div>
+          <div class="dim-chip">1 mm <span>Wall Thickness</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAVE DIVIDER -->
+  <div class="wave-divider">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#0f1628"/>
+    </svg>
+  </div>
+
+  <!-- STL FILES & SLICER SETTINGS -->
+  <section id="stl" class="section">
+    <div class="container">
+      <h2 class="section-title reveal">STL Files &amp; Slicer Settings</h2>
+      <p class="section-desc reveal">From design to print. The settings that made it all work.</p>
+
+      <div class="stl-image-grid reveal">
+        <div class="stl-image-card">
+          <figure class="stl-figure">
+            <img src="images/stl-screenshot-919.png" alt="STL Export" class="stl-img" data-caption="STL Export">
+            <figcaption class="img-caption">STL Export</figcaption>
+          </figure>
+        </div>
+        <div class="stl-image-card">
+          <figure class="stl-figure">
+            <img src="images/slicer-settings.png" alt="Layer Height and Slicer Settings" class="stl-img" data-caption="Layer Height / Slicer Settings">
+            <figcaption class="img-caption">Layer Height / Slicer Settings</figcaption>
+          </figure>
+        </div>
+        <div class="stl-image-card">
+          <figure class="stl-figure">
+            <img src="images/bambu-preview.png" alt="Bambu Studio Print Preview" class="stl-img" data-caption="Bambu Studio / Print Preview">
+            <figcaption class="img-caption">Bambu Studio / Print Preview</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="stl-grid">
+        <div class="stl-card reveal">
+          <div class="stl-icon">&#8597;</div>
+          <h3>Layer Height</h3>
+          <p>Printed at <strong>0.2mm</strong> layer height. This is a good balance between speed and how smooth the surface looks.</p>
+        </div>
+        <div class="stl-card reveal">
+          <div class="stl-icon">&#9881;</div>
+          <h3>Supports Enabled</h3>
+          <p>Tree supports were used for letter overhangs. They were easy to remove and left a clean surface.</p>
+        </div>
+        <div class="stl-card reveal">
+          <div class="stl-icon">&#128293;</div>
+          <h3>PLA Filament</h3>
+          <p>Standard <strong>white PLA</strong>. White is the best color for spreading LED light evenly.</p>
+        </div>
+        <div class="stl-card reveal">
+          <div class="stl-icon">&#9632;</div>
+          <h3>Print Orientation</h3>
+          <p>Letters were printed face-down on the build plate so the front surface comes out smooth.</p>
+        </div>
+        <div class="stl-card reveal">
+          <div class="stl-icon">&#9733;</div>
+          <h3>Bambu Studio</h3>
+          <p>Sliced in <strong>Bambu Studio</strong> for good control over supports, speed, and infill.</p>
+        </div>
+        <div class="stl-card reveal">
+          <div class="stl-icon">&#128196;</div>
+          <h3>STL Export Details</h3>
+          <p>Each letter was exported as a separate STL file with high quality settings so the surfaces come out clean.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAVE DIVIDER -->
+  <div class="wave-divider flip">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#0a0e1a"/>
+    </svg>
+  </div>
+
+  <!-- AREAS FOR IMPROVEMENT -->
+  <section id="improvements" class="section section-dark">
+    <div class="container">
+      <h2 class="section-title reveal">Areas for Improvement</h2>
+      <p class="section-desc reveal">Things I would change if I made another sign.</p>
+
+      <div class="wiring-grid">
+        <div class="wiring-card reveal">
+          <h3>Make the Sign Larger</h3>
+          <p>A bigger sign would give me more room for the <strong>LEDs and wires</strong>. It would also make putting everything together much easier.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Redesign the Diffuser Caps</h3>
+          <p>The diffuser caps were <strong>hard to print</strong> and some did not fit well. I would redesign them to be simpler and more reliable.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Better Wire Management</h3>
+          <p>I would add channels or a back plate to keep the <strong>wires organized and hidden</strong>. This would make the sign look cleaner.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Test Print First</h3>
+          <p>Before printing the whole sign, I would <strong>test print small sections</strong> first. This would help me catch problems early.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Increase Wall Thickness</h3>
+          <p>Some parts of the sign were a bit fragile. Making the <strong>walls thicker</strong> in those areas would make the sign stronger.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Improve the Mounting System</h3>
+          <p>The way the sign mounts on the wall could be better. I would design a <strong>simpler way to hang it</strong>.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Use Programmable LEDs</h3>
+          <p>In the future, I would use <strong>programmable RGB LEDs</strong> that allow animations and per-letter color control.</p>
+        </div>
+        <div class="wiring-card reveal">
+          <h3>Make Letters Slightly Larger</h3>
+          <p>Some letters were very small and hard to print. Making them <strong>slightly bigger</strong> would reduce printing problems.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAVE DIVIDER -->
+  <div class="wave-divider">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#0f1628"/>
+    </svg>
+  </div>
+
+
+
+  <!-- REFLECTION -->
+  <section id="reflection" class="section section-dark">
+    <div class="container">
+      <h2 class="section-title reveal">Reflection</h2>
+      <p class="section-desc reveal">What worked, what didn't, and what I would do next time.</p>
+
+      <div class="reflection-grid">
+        <div class="reflection-card reveal card-good">
+          <div class="ref-heading">
+            <span class="ref-icon">&#10004;</span>
+            <h3>What Worked Well</h3>
+          </div>
+          <ul>
+            <li><strong>Fusion 360</strong> helped me design the sign accurately.</li>
+            <li>The white PLA worked well for spreading the LED light.</li>
+            <li>The final sign looked clean and professional.</li>
+            <li>Printing the letters face-down gave a smooth finish.</li>
+          </ul>
+        </div>
+        <div class="reflection-card reveal card-challenge">
+          <div class="ref-heading">
+            <span class="ref-icon">&#9888;</span>
+            <h3>Challenges</h3>
+          </div>
+          <ul>
+            <li><strong>Printing the diffuser caps</strong> was one of the biggest challenges.</li>
+            <li>Some caps did not fit correctly and had to be redesigned.</li>
+            <li>First-layer printing problems caused failed prints.</li>
+            <li>Small letters were difficult to print successfully.</li>
+            <li>Installing LEDs inside narrow letters was difficult.</li>
+            <li>Routing wires through the holes took a lot of patience.</li>
+          </ul>
+        </div>
+        <div class="reflection-card reveal card-improve">
+          <div class="ref-heading">
+            <span class="ref-icon">&#9200;</span>
+            <h3>What I Would Improve</h3>
+          </div>
+          <ul>
+            <li><strong>Make the sign larger</strong> so there is more room for LEDs and wires.</li>
+            <li><strong>Make the diffuser caps</strong> easier to print and install.</li>
+            <li>Add better wire management channels.</li>
+            <li>Use <strong>programmable LEDs</strong> for more lighting effects.</li>
+            <li>Test print small sections before printing the entire project.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="compass-rose">
+      <svg viewBox="0 0 100 100" class="compass-svg">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+        <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>
+        <polygon points="50,10 56,44 50,50 44,44" fill="#d4a843" opacity="0.6"/>
+        <polygon points="50,90 44,56 50,50 56,56" fill="#d4a843" opacity="0.3"/>
+        <polygon points="10,50 44,44 50,50 44,56" fill="#d4a843" opacity="0.3"/>
+        <polygon points="90,50 56,56 50,50 56,44" fill="#d4a843" opacity="0.6"/>
+        <circle cx="50" cy="50" r="4" fill="#d4a843"/>
+      </svg>
+    </div>
+    <p>Made with &#9829; &amp; &#128161; | 3D Printed LED Sign Project</p>
+  </footer>
+
+  <script>
+const canvas = document.getElementById('oceanCanvas');
+let ctx, W, H;
+
+function initCanvas() {
+  if (!canvas) return;
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+}
+
+function resizeCanvas() {
+  W = canvas.width = canvas.parentElement.offsetWidth;
+  H = canvas.height = canvas.parentElement.offsetHeight;
+}
+
+const waves = [];
+for (let i = 0; i < 4; i++) {
+  waves.push({
+    y: 0.5 + i * 0.08,
+    amplitude: 16 + i * 8,
+    frequency: 0.008 + i * 0.002,
+    speed: 0.003 + i * 0.0015,
+    phase: i * 1.5,
+    color: i % 2 === 0 ? 'rgba(0, 221, 255,' : 'rgba(240, 184, 48,',
+    alpha: 0.06 + i * 0.035,
+  });
+}
+
+let time = 0;
+function drawOcean() {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, H);
+  gradient.addColorStop(0, 'rgba(9, 26, 48, 0.7)');
+  gradient.addColorStop(0.3, 'rgba(14, 40, 70, 0.5)');
+  gradient.addColorStop(0.6, 'rgba(20, 55, 90, 0.4)');
+  gradient.addColorStop(1, 'rgba(9, 26, 48, 0.7)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+
+  for (const w of waves) {
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 2) {
+      const y = H * (0.6 + w.y * 0.3) +
+                Math.sin(x * w.frequency + time * w.speed + w.phase) * w.amplitude +
+                Math.sin(x * w.frequency * 2.3 + time * w.speed * 1.7 + w.phase + 1) * w.amplitude * 0.4;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fillStyle = w.color + w.alpha + ')';
+    ctx.fill();
+  }
+
+  const glowY = H * 0.55 + Math.sin(time * 0.002) * 30;
+  const glow = ctx.createRadialGradient(W * 0.5, glowY, 0, W * 0.5, glowY, W * 0.4);
+  glow.addColorStop(0, 'rgba(0, 221, 255, 0.06)');
+  glow.addColorStop(0.5, 'rgba(240, 184, 48, 0.04)');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  time += 1;
+
+  if (document.getElementById('hero')) {
+    requestAnimationFrame(drawOcean);
+  }
+}
+
+function createParticles() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 2 + Math.random() * 6;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.opacity = 0.05 + Math.random() * 0.15;
+    p.style.animation = 'floatParticle ' + (12 + Math.random() * 20) + 's linear ' + (Math.random() * -20) + 's infinite';
+    p.style.transform = 'translateY(0)';
+    container.appendChild(p);
+  }
+}
+
+const ps = document.createElement('style');
+ps.textContent = '\
+  @keyframes floatParticle {\
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }\
+    10%  { opacity: 0.15; }\
+    90%  { opacity: 0.15; }\
+    100% { transform: translateY(-100vh) translateX(' + (40 - Math.random() * 80) + 'px); opacity: 0; }\
+  }\
+';
+document.head.appendChild(ps);
+
+const revealEls = document.querySelectorAll('.reveal');
+
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  },
+  { threshold: 0.12, rootMargin: '0px 0px -20px 0px' }
+);
+
+revealEls.forEach((el) => observer.observe(el));
+
+const timelineItems = document.querySelectorAll('.timeline-item');
+
+const tlObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  },
+  { threshold: 0.2 }
+);
+
+timelineItems.forEach((item) => tlObserver.observe(item));
+
+const navbar = document.getElementById('navbar');
+
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+const progressBar = document.getElementById('scrollProgress');
+
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = (scrollTop / docHeight) * 100;
+  if (progressBar) {
+    progressBar.style.width = Math.min(progress, 100) + '%';
+  }
+});
+
+const hamburger = document.getElementById('hamburger');
+const navLinks = document.querySelector('.nav-links');
+
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navLinks.classList.toggle('open');
+});
+
+document.querySelectorAll('.nav-links a').forEach((link) => {
+  link.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    navLinks.classList.remove('open');
+  });
+});
+
+const sections = document.querySelectorAll('section[id]');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach((section) => {
+    const top = section.offsetTop - 100;
+    const bottom = top + section.offsetHeight;
+    if (window.scrollY >= top && window.scrollY < bottom) {
+      current = section.getAttribute('id');
+    }
+  });
+
+  document.querySelectorAll('.nav-links a').forEach((link) => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+});
+
+const heroGrid = document.querySelector('.hero-bg-grid');
+
+document.querySelector('.hero')?.addEventListener('mousemove', (e) => {
+  if (!heroGrid) return;
+  const x = (e.clientX / window.innerWidth - 0.5) * 10;
+  const y = (e.clientY / window.innerHeight - 0.5) * 10;
+  heroGrid.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+});
+
+window.addEventListener('scroll', () => {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const heroContent = hero.querySelector('.hero-content');
+  const scrollY = window.scrollY;
+  if (heroContent && scrollY < hero.offsetHeight) {
+    heroContent.style.transform = 'translateY(' + (scrollY * 0.15) + 'px)';
+    heroContent.style.opacity = Math.max(1 - scrollY / (hero.offsetHeight * 0.8), 0);
+  }
+});
+
+const soundBtn = document.getElementById('soundToggle');
+let isMuted = false;
+
+soundBtn?.addEventListener('click', () => {
+  isMuted = !isMuted;
+  soundBtn.classList.toggle('muted', isMuted);
+  soundBtn.style.borderColor = isMuted ? 'rgba(255,255,255,0.1)' : '';
+  soundBtn.style.color = isMuted ? 'rgba(255,255,255,0.3)' : '';
+});
+
+timelineItems.forEach((item, i) => {
+  item.style.transitionDelay = i * 0.1 + 's';
+});
+
+initCanvas();
+drawOcean();
+createParticles();
+  </script>
+</body>
+</html>
